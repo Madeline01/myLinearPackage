@@ -2,12 +2,57 @@ Package: myLinearPackage
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Madeline",
+           family = "Youngren",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "madeline.youngren@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: This package provides a linear regression function. 
+
+Here is an example of how to run the linear regression. 
+research question, does high school math gpa impact college calculus gpa?
+don't actually have this data, making up some semi-realistic numbers assuming there are n=2000 students
+seeing high school preparation of math and college calculus performance
+n <- 2000
+hs_math_gpa <- rnorm(n, mean = 3.5, sd = 0.5)
+# truncate gpa's 
+hs_math_gpa <- ifelse(hs_math_gpa < 2.0, 2.0,
+                      ifelse(hs_math_gpa > 4.0, 4.0, hs_math_gpa))
+
+# assumptions of true beta and true sigma
+true_beta <- c("Intercept" = 0.3,
+               "hs_math_gpa" = 0.7)
+true_sigma <- 0.5
+college_calc_gpa <- true_beta["Intercept"] +
+  true_beta["hs_math_gpa"] * hs_math_gpa +
+  rnorm(n, mean = 0, sd = true_sigma)
+# we don't see exact GPAs, just nearest 0.1
+college_calc_gpa <- round(college_calc_gpa, 1)
+# truncate under 0.7 or over 4.0
+college_calc_gpa <- ifelse(college_calc_gpa > 4.0, 4.0,
+                           ifelse(college_calc_gpa < 0.0, 0.0,
+                                  ifelse(college_calc_gpa < 0.7, 0.7,
+                                         college_calc_gpa)))
+
+calculus_data <- data.frame(college_calc_gpa, hs_math_gpa)
+Y   <- calculus_data[,1]
+X   <-  matrix(calculus_data[,2],ncol=1)
+sub <- c(1:500)
+
+myLinearRegression <- function(X, Y, sub){
+  X2 <- X[sub,]
+  if  (ncol(X)==1) X2 <- as.matrix(X2,ncol=1)
+  Y2 <- Y[sub]
+  res <- summary(lm(Y2~X2))
+  ###This is not the plot I was asking for;   it's just intended to  give  you an  idea
+  ###of what  to  do.
+  plot(X2[,1],Y2)
+  coef  <-  res$coef[,2]
+  pvals <- res$coef[,4]
+  return(list("coef"=coef,"pvals"=pvals))
+}
+myLinearRegression(X,Y,sub)
+
 License: `use_mit_license()`, `use_gpl3_license()` or friends to
     pick a license
 Encoding: UTF-8
